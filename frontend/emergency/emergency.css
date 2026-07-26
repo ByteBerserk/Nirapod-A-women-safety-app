@@ -1,0 +1,136 @@
+/* Emergency contacts styles - modern look */
+:root{
+  --bg:#f7f8fb;
+  --card:#ffffff;
+  --muted:#6b7280;
+  --accent:#4f46e5;
+  --danger:#ef4444;
+}
+
+.emergency-panel{
+  padding:24px;
+  background: linear-gradient(180deg, rgba(10,10,10,0.98) 0%, rgba(18,18,18,0.95) 100%);
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+}
+.emergency-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+}
+.emergency-header-actions{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.emergency-header h2{
+  margin:0;
+  font-size:1.5rem;
+  color:#fff;
+}
+
+.lock-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.06);
+  color:#fff;
+  padding:10px 16px;
+  border-radius:14px;
+  cursor:pointer;
+  transition:transform .2s ease, background .2s ease, border-color .2s ease;
+}
+.lock-btn:hover{
+  transform:translateY(-1px);
+  background: rgba(255,255,255,0.12);
+}
+.lock-btn.locked{
+  background: rgba(255, 92, 92, 0.16);
+  border-color: rgba(255, 92, 92, 0.28);
+  color:#ffb3b3;
+}
+.submit-btn.disabled{
+  opacity:0.55;
+  cursor:not-allowed;
+  pointer-events:none;
+}
+
+.contacts-list{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.contact-card{
+  background: rgba(0,0,0,0.70);
+  padding:16px;
+  border-radius:18px;
+  border: 1px solid rgba(255,255,255,0.08);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  backdrop-filter: blur(16px);
+}
+.contact-info{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.contact-name{
+  font-weight:700;
+  color:#ffffff;
+}
+.contact-meta{
+  color:rgba(255,255,255,0.65);
+  font-size:0.95rem;
+}
+.contact-actions{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.remove-contact{
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #ff5c5c;
+  padding: 8px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+
+/* Toast */
+.toast-container{
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  z-index:9999;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.toast{
+  background:rgba(0,0,0,0.8);
+  color:#fff;
+  padding:10px 14px;
+  border-radius:10px;
+  box-shadow:0 6px 18px rgba(2,6,23,0.6);
+  transform:translateY(20px);
+  opacity:0;
+  transition:all .25s ease;
+}
+.toast.show{transform:none;opacity:1}
+
+/* modal tweaks reuse existing modal class from dashboard.css */
+.modal .modal-content.small{max-width:420px;padding:18px}
+.modal label{display:block;margin-bottom:8px}
+.modal input{width:100%;padding:8px;margin-top:4px;border-radius:6px;border:1px solid #e6e9ef}
+
+.form-message{margin-top:8px;color:var(--danger)}
+
+/* responsive */
+@media (max-width:700px){
+  .emergency-header{flex-direction:column;align-items:flex-start;gap:8px}
+}
