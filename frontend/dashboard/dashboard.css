@@ -216,6 +216,25 @@ body {
 .profile-photo-wrapper-manage:focus-within .photo-overlay {
   opacity: 1;
 }
+<<<<<<< HEAD
+=======
+.messages-container{
+    min-height:300px;
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:12px;
+    padding:15px;
+    margin-bottom:15px;
+}
+
+.message-input-area{
+    display:flex;
+    gap:10px;
+}
+
+.message-input-area input{
+    flex:1;
+}
+>>>>>>> feature/group-messaging-location
 
 .photo-btn {
   border: 0;

@@ -27,6 +27,11 @@ const changePhotoBtn = document.getElementById("changePhotoBtn");
 const profilePhotoInput = document.getElementById("profilePhotoInput");
 const homeSection = document.getElementById("homeSection");
 const manageSection = document.getElementById("manageSection");
+<<<<<<< HEAD
+=======
+const emergencySection =document.getElementById("emergencySection");
+const messagesSection = document.getElementById("messagesSection");
+>>>>>>> feature/group-messaging-location
 const goToManageBtn = document.getElementById("goToManageBtn");
 const updateModal = document.getElementById("updateModal");
 const modalTitle = document.getElementById("modalTitle");
@@ -85,6 +90,10 @@ const setActivePage = (page) => {
   localStorage.setItem("nirapodActivePage", page);
 
   if (page === "home") {
+<<<<<<< HEAD
+=======
+    if (messagesSection) messagesSection.classList.add("hidden");
+>>>>>>> feature/group-messaging-location
     pageTitle.textContent = "Home";
     pageDescription.textContent = "Your secure member home page with fast access to profile actions.";
     homeSection.classList.remove("hidden");
@@ -93,6 +102,10 @@ const setActivePage = (page) => {
     if (emergencySection) emergencySection.classList.add("hidden");
   } else {
     if (page === "manage"){
+<<<<<<< HEAD
+=======
+      if (messagesSection) messagesSection.classList.add("hidden");
+>>>>>>> feature/group-messaging-location
       pageTitle.textContent = "Manage User";
       pageDescription.textContent = "Update profile details and manage your account settings.";
       homeSection.classList.add("hidden");
@@ -100,6 +113,10 @@ const setActivePage = (page) => {
       const emergencySection = document.getElementById("emergencySection");
       if (emergencySection) emergencySection.classList.add("hidden");
     } else if (page === "emergency"){
+<<<<<<< HEAD
+=======
+      if (messagesSection) messagesSection.classList.add("hidden");
+>>>>>>> feature/group-messaging-location
       pageTitle.textContent = "Emergency Contacts";
       pageDescription.textContent = "Manage your trusted emergency contacts.";
       homeSection.classList.add("hidden");
@@ -107,12 +124,25 @@ const setActivePage = (page) => {
       const emergencySection = document.getElementById("emergencySection");
       if (emergencySection) emergencySection.classList.remove("hidden");
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     } else if (page === "community") {
       window.location.href = "/community/community.html";
       return;
 >>>>>>> promitDev
     }
+=======
+    } else if (page === "messages") {
+      pageTitle.textContent = "Messages";
+      pageDescription.textContent = "View and send messages to your contacts.";
+      homeSection.classList.add("hidden");
+      manageSection.classList.add("hidden");
+      const emergencySection = document.getElementById("emergencySection");
+      if (emergencySection) emergencySection.classList.add("hidden");
+      messagesSection.classList.remove("hidden");
+      if (messagesSection) messagesSection.classList.remove("hidden");
+    } 
+>>>>>>> feature/group-messaging-location
   }
 };
 

@@ -25,12 +25,15 @@ const connectDB = async () => {
     await database.command({ ping: 1 });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     await mongoose.connect(mongoUrl, {
         autoIndex: true
     });
 
 >>>>>>> promitDev
+=======
+>>>>>>> feature/group-messaging-location
     console.log(`Connected to MongoDB at ${mongoUrl}`);
     return database;
 };
