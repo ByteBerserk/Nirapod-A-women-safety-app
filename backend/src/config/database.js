@@ -26,6 +26,7 @@ const connectDB = async () => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     await mongoose.connect(mongoUrl, {
         autoIndex: true
@@ -34,6 +35,8 @@ const connectDB = async () => {
 >>>>>>> promitDev
 =======
 >>>>>>> feature/group-messaging-location
+=======
+>>>>>>> SamiDev
     console.log(`Connected to MongoDB at ${mongoUrl}`);
     return database;
 };

@@ -217,6 +217,7 @@ body {
   opacity: 1;
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 .messages-container{
     min-height:300px;
@@ -235,6 +236,8 @@ body {
     flex:1;
 }
 >>>>>>> feature/group-messaging-location
+=======
+>>>>>>> SamiDev
 
 .photo-btn {
   border: 0;

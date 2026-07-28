@@ -28,10 +28,13 @@ const profilePhotoInput = document.getElementById("profilePhotoInput");
 const homeSection = document.getElementById("homeSection");
 const manageSection = document.getElementById("manageSection");
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 const emergencySection =document.getElementById("emergencySection");
 const messagesSection = document.getElementById("messagesSection");
 >>>>>>> feature/group-messaging-location
+=======
+>>>>>>> SamiDev
 const goToManageBtn = document.getElementById("goToManageBtn");
 const updateModal = document.getElementById("updateModal");
 const modalTitle = document.getElementById("modalTitle");
@@ -91,9 +94,12 @@ const setActivePage = (page) => {
 
   if (page === "home") {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     if (messagesSection) messagesSection.classList.add("hidden");
 >>>>>>> feature/group-messaging-location
+=======
+>>>>>>> SamiDev
     pageTitle.textContent = "Home";
     pageDescription.textContent = "Your secure member home page with fast access to profile actions.";
     homeSection.classList.remove("hidden");
@@ -103,9 +109,12 @@ const setActivePage = (page) => {
   } else {
     if (page === "manage"){
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       if (messagesSection) messagesSection.classList.add("hidden");
 >>>>>>> feature/group-messaging-location
+=======
+>>>>>>> SamiDev
       pageTitle.textContent = "Manage User";
       pageDescription.textContent = "Update profile details and manage your account settings.";
       homeSection.classList.add("hidden");
@@ -114,15 +123,19 @@ const setActivePage = (page) => {
       if (emergencySection) emergencySection.classList.add("hidden");
     } else if (page === "emergency"){
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       if (messagesSection) messagesSection.classList.add("hidden");
 >>>>>>> feature/group-messaging-location
+=======
+>>>>>>> SamiDev
       pageTitle.textContent = "Emergency Contacts";
       pageDescription.textContent = "Manage your trusted emergency contacts.";
       homeSection.classList.add("hidden");
       manageSection.classList.add("hidden");
       const emergencySection = document.getElementById("emergencySection");
       if (emergencySection) emergencySection.classList.remove("hidden");
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -143,6 +156,9 @@ const setActivePage = (page) => {
       if (messagesSection) messagesSection.classList.remove("hidden");
     } 
 >>>>>>> feature/group-messaging-location
+=======
+    }
+>>>>>>> SamiDev
   }
 };
 

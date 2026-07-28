@@ -8,6 +8,7 @@ import profileRoutes from "./routes/profileRoutes.js";
 import emergencyRoutes from "./routes/emergencyRoutes.js";
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import communityReportRoutes from "./routes/communityReportRoutes.js";
 >>>>>>> promitDev
@@ -15,14 +16,21 @@ import communityReportRoutes from "./routes/communityReportRoutes.js";
 =======
 import messageRoutes from "./routes/messageRoutes.js";
 >>>>>>> feature/group-messaging-location
+=======
+import incidentRoutes from "./routes/incidentRoutes.js";
+
+>>>>>>> SamiDev
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: "25mb" }));
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 app.use("/api/messages", messageRoutes);
 >>>>>>> feature/group-messaging-location
+=======
+>>>>>>> SamiDev
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Serve frontend static files from the sibling `frontend` folder so the app
@@ -52,6 +60,7 @@ app.use("/api/safety-resources", safetyResourceRoutes);
 app.use("/api/emergency", emergencyRoutes);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 app.use('/api/community-reports', communityReportRoutes);
@@ -59,6 +68,10 @@ app.use('/api/community-reports', communityReportRoutes);
 =======
 
 >>>>>>> feature/group-messaging-location
+=======
+app.use("/api/incidents", incidentRoutes);
+
+>>>>>>> SamiDev
 app.use((error, req, res, next) => {
 	if (error.type === "entity.too.large" || error.status === 413) {
 		return res.status(413).json({
