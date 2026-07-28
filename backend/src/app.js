@@ -7,14 +7,22 @@ import authRoutes from "./routes/authRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import emergencyRoutes from "./routes/emergencyRoutes.js";
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import communityReportRoutes from "./routes/communityReportRoutes.js";
 >>>>>>> promitDev
 
+=======
+import messageRoutes from "./routes/messageRoutes.js";
+>>>>>>> feature/group-messaging-location
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: "25mb" }));
+<<<<<<< HEAD
+=======
+app.use("/api/messages", messageRoutes);
+>>>>>>> feature/group-messaging-location
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Serve frontend static files from the sibling `frontend` folder so the app
@@ -43,10 +51,14 @@ app.use("/api/feedback", feedbackRoutes);
 app.use("/api/safety-resources", safetyResourceRoutes);
 app.use("/api/emergency", emergencyRoutes);
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 app.use('/api/community-reports', communityReportRoutes);
 >>>>>>> promitDev
+=======
+
+>>>>>>> feature/group-messaging-location
 app.use((error, req, res, next) => {
 	if (error.type === "entity.too.large" || error.status === 413) {
 		return res.status(413).json({
