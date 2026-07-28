@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Safety Reports</title>
+    <link rel="stylesheet" href="community.css">
+</head>
+<body>
+    <div class="page-shell">
+        <div class="page-header">
+            <div>
+                <h2>Community Safety Feed</h2>
+                <p>React to reports or flag inappropriate content to support other community members.</p>
+            </div>
+            <div class="page-header-actions">
+                <button id="backButton" type="button" class="secondary-btn back-link">← Back to Dashboard</button>
+            </div>
+        </div>
+
+        <section class="create-report-panel">
+            <div class="panel-header">
+                <h3>Share a safety report</h3>
+                <p>Tell the community about an important safety issue.</p>
+            </div>
+            <form id="createReportForm" class="report-form">
+                <div class="form-group">
+                    <label for="reportTitle">Title</label>
+                    <input id="reportTitle" name="title" type="text" placeholder="Enter a short title" required />
+                </div>
+                <div class="form-group">
+                    <label for="reportDescription">Description</label>
+                    <textarea id="reportDescription" name="description" rows="4" placeholder="Describe the safety issue" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="reportLocation">Location</label>
+                    <input id="reportLocation" name="location" type="text" placeholder="Add a location (optional)" />
+                </div>
+                <button type="submit" class="btn-primary">Submit Report</button>
+                <p class="hint-text">A report appears immediately and can be reacted to or flagged by the community.</p>
+            </form>
+        </section>
+
+        <div id="reportsFeed" class="reports-feed"></div>
+        <div id="noReportsMessage" class="empty-state hidden">No reports yet. Submit the first community safety report.</div>
+    </div>
+
+    <!-- Modal for Flagging Inappropriate Content -->
+    <div id="flagModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Report Inappropriate Content</h3>
+            <label for="flagReason">Reason:</label>
+            <select id="flagReason">
+                <option value="fake">Fake / Misleading</option>
+                <option value="offensive">Offensive Content</option>
+                <option value="spam">Spam</option>
+                <option value="abusive">Abusive Language</option>
+            </select>
+            
+            <label for="flagDetails">Additional Details (Optional):</label>
+            <textarea id="flagDetails" rows="3"></textarea>
+
+            <div class="modal-actions">
+                <button id="submitFlagBtn" class="btn-danger">Submit Report</button>
+                <button type="button" onclick="closeFlagModal()" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="community.js"></script>
+</body>
+</html>
