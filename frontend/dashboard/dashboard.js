@@ -106,6 +106,12 @@ const setActivePage = (page) => {
       manageSection.classList.add("hidden");
       const emergencySection = document.getElementById("emergencySection");
       if (emergencySection) emergencySection.classList.remove("hidden");
+<<<<<<< HEAD
+=======
+    } else if (page === "community") {
+      window.location.href = "/community/community.html";
+      return;
+>>>>>>> promitDev
     }
   }
 };

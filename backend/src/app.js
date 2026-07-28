@@ -6,6 +6,10 @@ import safetyResourceRoutes from "./routes/safetyResourceRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import emergencyRoutes from "./routes/emergencyRoutes.js";
+<<<<<<< HEAD
+=======
+import communityReportRoutes from "./routes/communityReportRoutes.js";
+>>>>>>> promitDev
 
 const app = express();
 
@@ -38,7 +42,11 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/safety-resources", safetyResourceRoutes);
 app.use("/api/emergency", emergencyRoutes);
+<<<<<<< HEAD
 
+=======
+app.use('/api/community-reports', communityReportRoutes);
+>>>>>>> promitDev
 app.use((error, req, res, next) => {
 	if (error.type === "entity.too.large" || error.status === 413) {
 		return res.status(413).json({

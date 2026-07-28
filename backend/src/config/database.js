@@ -24,6 +24,13 @@ const connectDB = async () => {
     database = client.db();
     await database.command({ ping: 1 });
 
+<<<<<<< HEAD
+=======
+    await mongoose.connect(mongoUrl, {
+        autoIndex: true
+    });
+
+>>>>>>> promitDev
     console.log(`Connected to MongoDB at ${mongoUrl}`);
     return database;
 };
