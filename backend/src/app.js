@@ -6,6 +6,7 @@ import safetyResourceRoutes from "./routes/safetyResourceRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import emergencyRoutes from "./routes/emergencyRoutes.js";
+import incidentRoutes from "./routes/incidentRoutes.js";
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/safety-resources", safetyResourceRoutes);
 app.use("/api/emergency", emergencyRoutes);
+app.use("/api/incidents", incidentRoutes);
 
 app.use((error, req, res, next) => {
 	if (error.type === "entity.too.large" || error.status === 413) {
