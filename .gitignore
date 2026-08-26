@@ -31,3 +31,6 @@ server/.tools/
 
 # Runtime state written by `npm run tunnel`, not configuration.
 server/.tunnel.json
+
+# Course documents, not part of the application.
+*.pdf
