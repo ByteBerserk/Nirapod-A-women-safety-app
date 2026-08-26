@@ -1,0 +1,28 @@
+{
+  "name": "nirapod",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Nirapod - a community-driven personal safety application for women",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "dev": "concurrently -n \"api,web\" -c \"magenta,cyan\" \"npm run server\" \"npm run client\"",
+    "tunnel": "npm --workspace server run tunnel",
+    "server": "npm --workspace server run dev",
+    "client": "npm --workspace client run dev",
+    "seed": "npm --workspace server run seed",
+    "seed:demo": "npm --workspace server run seed:demo",
+    "backup": "npm --workspace server run backup",
+    "test": "npm --workspace server run test",
+    "build": "npm --workspace client run build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

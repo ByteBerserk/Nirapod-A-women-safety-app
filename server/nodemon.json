@@ -1,0 +1,7 @@
+{
+  "watch": ["src"],
+  "ext": "js,mjs,cjs,json",
+  "ignore": ["src/scripts/*", "uploads/*", ".tools/*", ".local-mongo/*"],
+  "delay": 1200,
+  "signal": "SIGTERM"
+}
