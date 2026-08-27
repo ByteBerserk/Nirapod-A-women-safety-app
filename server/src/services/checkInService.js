@@ -11,29 +11,6 @@ import { CHECKIN_STATUS, AUDIT_ACTIONS, LIMITS } from '../config/constants.js';
 import { emitToUser } from '../sockets/emitter.js';
 import { runInBackground } from '../utils/background.js';
 
-/**
- * FR-26: safety check-in.
- *
- * The whole feature is two timestamps and a scheduler. What makes it worth
- * having is the last step: when the grace period runs out this does not invent
- * its own notion of an emergency, it calls the same `sosService.activate` the
- * red button calls. Contacts get the identical email, the identical live
- * tracking link, and every safety group is alerted the same way - so a
- * check-in that escalates is indistinguishable from an SOS that was pressed.
- */
-
-/* ------------------------------------------------------------------ start --- */
-
-/**
- * @param {object} options
- * @param {object} options.user
- * @param {string} options.label
- * @param {number} options.minutes       how long until we ask
- * @param {number} [options.graceMinutes] how long they have to answer
- * @param {{lat:number,lng:number}} [options.location]
- * @param {string} [options.note]
- * @param {object} [options.req]         for the audit trail
- */
 async function start({ user, label, minutes, graceMinutes, location, note = '', req }) {
   const existing = await SafetyCheckIn.findOpenForUser(user._id);
   if (existing) {
@@ -85,9 +62,6 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, Number(value)));
 }
 
-/* -------------------------------------------------------------- responses --- */
-
-/** "Yes, I am safe." Closes the check-in without alerting anybody. */
 async function confirmSafe({ checkIn, user, note = '', req }) {
   if (!checkIn.isOpen) {
     throw AppError.badRequest('That check-in is already closed.', { code: 'CHECKIN_CLOSED' });
@@ -115,7 +89,6 @@ async function confirmSafe({ checkIn, user, note = '', req }) {
   return checkIn;
 }
 
-/** "Not yet - give me longer." */
 async function extend({ checkIn, user, minutes, req }) {
   if (!checkIn.isOpen) {
     throw AppError.badRequest('That check-in is already closed.', { code: 'CHECKIN_CLOSED' });
@@ -142,7 +115,6 @@ async function extend({ checkIn, user, minutes, req }) {
   return checkIn;
 }
 
-/** Called off before it was needed. */
 async function cancel({ checkIn, user, req }) {
   if (!checkIn.isOpen) {
     throw AppError.badRequest('That check-in is already closed.', { code: 'CHECKIN_CLOSED' });
@@ -169,17 +141,6 @@ async function cancel({ checkIn, user, req }) {
   return checkIn;
 }
 
-/* -------------------------------------------------------------- scheduler --- */
-
-/**
- * Asks everyone whose timer has just run out whether they are safe.
- *
- * In-app and by email, because the person may not have the tab open - and the
- * whole design rests on them getting a chance to answer before their contacts
- * are alarmed.
- *
- * @returns {Promise<number>} how many were prompted
- */
 async function promptDue(now = new Date()) {
   const due = await SafetyCheckIn.find({
     status: CHECKIN_STATUS.ACTIVE,
@@ -194,7 +155,7 @@ async function promptDue(now = new Date()) {
 
     checkIn.status = CHECKIN_STATUS.AWAITING;
     checkIn.promptedAt = now;
-    /* eslint-disable no-await-in-loop */
+
     await checkIn.save();
 
     const minutes = checkIn.graceMinutes;
@@ -225,7 +186,7 @@ async function promptDue(now = new Date()) {
           kind: 'checkin-due',
           to: owner.email,
           toName: owner.name,
-          priority: 2, // behind an SOS, ahead of everything else
+          priority: 2,
           dedupeKey: `checkin-due:${checkIn._id}`,
           relatedUser: owner._id,
           ...templates.checkInDue({
@@ -260,17 +221,6 @@ async function promptDue(now = new Date()) {
   return prompted;
 }
 
-/**
- * Nobody answered. Runs the predefined emergency procedure.
- *
- * Deliberately `sosService.activate` rather than a bespoke notification: the
- * requirement says the *emergency procedure*, and there is exactly one of those
- * in this application. Going through it means the contacts get the tracking
- * link and the medical details they would get from the button, and the event
- * lands in the SOS history where it can be reviewed afterwards.
- *
- * @returns {Promise<number>} how many escalated
- */
 async function escalateOverdue(now = new Date()) {
   const overdue = await SafetyCheckIn.find({
     status: CHECKIN_STATUS.AWAITING,
@@ -280,7 +230,7 @@ async function escalateOverdue(now = new Date()) {
   let escalated = 0;
 
   for (const checkIn of overdue) {
-    /* eslint-disable no-await-in-loop */
+
     const owner = await User.findById(checkIn.user);
     if (!owner) {
       checkIn.status = CHECKIN_STATUS.CANCELLED;
@@ -336,11 +286,7 @@ async function escalateOverdue(now = new Date()) {
 
       escalated += 1;
     } catch (error) {
-      /*
-       * Left in `awaiting` on purpose. The next tick tries again, which is the
-       * right behaviour for a failure here: giving up quietly on the one path
-       * that exists to raise the alarm would be the worst possible outcome.
-       */
+
       logger.error('Check-in escalation failed, will retry next tick', {
         checkIn: String(checkIn._id),
         message: error.message,
@@ -361,7 +307,6 @@ function coordinatesOf(checkIn) {
   return { lat: coordinates[1], lng: coordinates[0] };
 }
 
-/** One tick of the scheduler: ask whoever is due, escalate whoever is out of time. */
 async function runDueChecks(now = new Date()) {
   const prompted = await promptDue(now);
   const escalated = await escalateOverdue(now);

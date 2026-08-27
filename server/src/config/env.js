@@ -6,8 +6,6 @@ import { resolveClientUrl } from './clientUrl.js';
 import { fileURLToPath as __toPath } from 'url';
 import { dirname as __toDir } from 'path';
 
-// import.meta.dirname exists in Node 20.11+ but is not populated by every
-// ESM runtime (Jest, notably), so derive it the portable way.
 const __dirname = __toDir(__toPath(import.meta.url));
 
 const ENV_PATH = path.resolve(__dirname, '../../.env');
@@ -18,11 +16,6 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const isProd = NODE_ENV === 'production';
 const isTest = NODE_ENV === 'test';
 
-/**
- * Reads a variable, falling back to `fallback`. Throws when the variable is
- * missing and no fallback was supplied, so the process dies at boot rather than
- * halfway through a request.
- */
 function read(key, fallback) {
   const value = process.env[key];
   if (value === undefined || value === '') {
@@ -58,8 +51,6 @@ function readList(key, fallback) {
     .filter(Boolean);
 }
 
-// In dev and test we do not want people to have to invent secrets before the
-// app will boot, but production must never fall back to a known value.
 const devSecret = (name) => (isProd ? undefined : `dev-only-insecure-${name}-secret`);
 
 const env = {
@@ -68,7 +59,6 @@ const env = {
   isTest,
   isDev: NODE_ENV === 'development',
 
-  /* A test run drives the gateway and the schedules directly. */
   realtimeEnabled: !isTest,
   cronEnabled: !isTest,
 
@@ -78,9 +68,6 @@ const env = {
     ? read('MONGO_URI_TEST', 'mongodb://127.0.0.1:27017/nirapod_test')
     : read('MONGO_URI', 'mongodb://127.0.0.1:27017/nirapod'),
 
-  // Public DNS resolvers, used for the Atlas SRV lookup. Some networks hijack
-  // it, and the resulting failure looks like a TLS error rather than a DNS
-  // one. Set DNS_SERVERS empty to fall back to the system resolver.
   dnsServers: read('DNS_SERVERS', '8.8.8.8,1.1.1.1')
     .split(',')
     .map((entry) => entry.trim())
@@ -97,11 +84,6 @@ const env = {
 
   clientUrl: resolveClientUrl(process.env),
 
-  /*
-   * The allowlist plus the client's own origin, de-duplicated. A request from
-   * the API's own origin is allowed separately, in app.js, because working
-   * that out needs the request.
-   */
   corsOrigins: [
     ...readList('CORS_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173'),
     resolveClientUrl(process.env),
@@ -119,7 +101,7 @@ const env = {
   },
 
   uploads: {
-    // Files are written to this folder and served from /uploads by Express.
+
     dir: path.resolve(__dirname, '../../', read('UPLOAD_DIR', 'uploads')),
     maxBytes: readInt('MAX_UPLOAD_MB', 15) * 1024 * 1024,
   },
@@ -151,22 +133,6 @@ if (isProd) {
   }
 }
 
-/*
- * Follow the tunnel while the server is running.
- *
- * `npm run tunnel` opens a public address on demand and the hostname is
- * different every time, so the value cannot be fixed at boot. Restarting the
- * API to collect it is worse than it sounds: nodemon starts the replacement
- * before the old process has released the port, the replacement dies on
- * EADDRINUSE, and the survivor is the stale one still emailing the old link.
- *
- * Re-resolving on a timer avoids the restart, and because the tunnel file
- * carries a heartbeat this also notices a tunnel that has *stopped* and falls
- * back to the local address - which is the case that previously left the app
- * emailing links to a hostname that no longer resolved.
- *
- * Development only. In production the value is fixed at boot, as it should be.
- */
 if (!isProd && !isTest) {
   const followTunnel = setInterval(() => {
     const next = resolveClientUrl(process.env);
@@ -176,11 +142,9 @@ if (!isProd && !isTest) {
     env.clientUrl = next;
     if (!env.corsOrigins.includes(next)) env.corsOrigins.push(next);
 
-    // eslint-disable-next-line no-console
     console.log(`[env] client URL changed: ${before} -> ${next}`);
   }, 5000);
 
-  // Never hold the process open just to keep watching.
   followTunnel.unref?.();
 }
 

@@ -2,17 +2,10 @@ import rateLimit from 'express-rate-limit';
 import env from '../config/env.js';
 import AppError from '../utils/AppError.js';
 
-/**
- * NFR-4. Limits are deliberately uneven: brute-forcing a login is a real
- * threat, so that bucket is tight, while an SOS must never be blocked by a
- * limiter - a woman in trouble tapping the button four times is not an attack.
- */
-
 function handler(message) {
   return (req, res, next) => next(AppError.tooMany(message));
 }
 
-/** Disabled under test so the suite does not trip over its own request volume. */
 const skip = () => env.isTest;
 
 const general = rateLimit({
@@ -30,8 +23,7 @@ const auth = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip,
-  // Only failures count, so someone repeatedly signing in on a shared network
-  // is not punished for someone else's typos.
+
   skipSuccessfulRequests: true,
   handler: handler('Too many sign-in attempts. Please try again in 15 minutes.'),
 });
@@ -45,10 +37,6 @@ const passwordReset = rateLimit({
   handler: handler('Too many password reset requests. Please try again later.'),
 });
 
-/**
- * Generous on purpose. It exists only to stop a runaway client loop from
- * mailing someone's entire contact list, not to ration emergencies.
- */
 const sos = rateLimit({
   windowMs: 60 * 1000,
   max: 20,
@@ -58,7 +46,6 @@ const sos = rateLimit({
   handler: handler('An SOS is already being processed. Please wait a few seconds.'),
 });
 
-/** Location pings during an SOS - one every few seconds is normal. */
 const locationPing = rateLimit({
   windowMs: 60 * 1000,
   max: 120,
@@ -86,7 +73,6 @@ const upload = rateLimit({
   handler: handler('Too many uploads. Please try again later.'),
 });
 
-/** Outbound calls to Nominatim and Overpass, which are donated services. */
 const externalGeo = rateLimit({
   windowMs: 60 * 1000,
   max: 30,

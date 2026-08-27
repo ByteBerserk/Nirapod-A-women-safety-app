@@ -1,11 +1,6 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
 
-/**
- * FR-5. A trusted person who receives SOS mail and can follow the live
- * tracking link. Kept in its own collection rather than embedded in the user so
- * that delivery statistics per contact stay cheap to update during an SOS.
- */
 const emergencyContactSchema = new mongoose.Schema(
   {
     owner: {
@@ -51,16 +46,10 @@ const emergencyContactSchema = new mongoose.Schema(
       default: '',
     },
 
-    /**
-     * Contacts are notified in ascending priority order. Not a hard guarantee
-     * of delivery order - it decides who is listed first in digests and who is
-     * retried first when the queue is backed up.
-     */
     priority: { type: Number, default: 1, min: 1, max: 10 },
 
     isActive: { type: Boolean, default: true },
 
-    /** Set when this contact opens a tracking link. Useful reassurance for the user. */
     lastNotifiedAt: { type: Date, default: null },
     lastViewedAt: { type: Date, default: null },
     notifyCount: { type: Number, default: 0 },
@@ -68,11 +57,9 @@ const emergencyContactSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// One person cannot be added twice under the same account (NFR-10).
 emergencyContactSchema.index({ owner: 1, email: 1 }, { unique: true });
 emergencyContactSchema.index({ owner: 1, priority: 1, createdAt: 1 });
 
-/** Active contacts for a user, in the order they should be alerted. */
 emergencyContactSchema.statics.activeForOwner = function activeForOwner(ownerId) {
   return this.find({ owner: ownerId, isActive: true })
     .sort({ priority: 1, createdAt: 1 })

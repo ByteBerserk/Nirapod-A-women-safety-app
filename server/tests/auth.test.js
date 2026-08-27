@@ -133,7 +133,7 @@ describe('Authentication', () => {
 
       expect(wrongPassword.status).toBe(401);
       expect(unknownUser.status).toBe(401);
-      // Different messages here would let an attacker enumerate accounts.
+
       expect(wrongPassword.body.message).toBe(unknownUser.body.message);
     });
 
@@ -141,7 +141,7 @@ describe('Authentication', () => {
       const { user } = await createUser();
 
       for (let i = 0; i < 8; i += 1) {
-        // eslint-disable-next-line no-await-in-loop
+
         await request(app)
           .post('/api/auth/login')
           .send({ identifier: user.email, password: 'WrongPassword1' });
@@ -232,11 +232,9 @@ describe('Authentication', () => {
       });
       expect(changed.status).toBe(200);
 
-      // The old token must be dead even though it has not expired.
       const withOldToken = await auth(token).get('/api/auth/me');
       expect(withOldToken.status).toBe(401);
 
-      // The response handed back a working replacement.
       const withNewToken = await auth(changed.body.data.accessToken).get('/api/auth/me');
       expect(withNewToken.status).toBe(200);
     });
@@ -285,7 +283,7 @@ describe('Authentication', () => {
       const record = await User.findById(user.id).select('+passwordResetTokenHash');
 
       expect(record.passwordResetTokenHash).toEqual(expect.any(String));
-      // A sha256 hex digest, not a raw base64url token.
+
       expect(record.passwordResetTokenHash).toHaveLength(64);
     });
 
@@ -307,7 +305,6 @@ describe('Authentication', () => {
         .post('/api/auth/login')
         .send({ identifier: { $gt: '' }, password: { $gt: '' } });
 
-      // Sanitised into a harmless string, so it simply fails to match.
       expect(response.status).toBeGreaterThanOrEqual(400);
       expect(response.body.success).toBe(false);
     });

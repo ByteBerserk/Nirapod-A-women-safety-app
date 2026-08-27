@@ -3,9 +3,6 @@ import MailJob from '../src/models/MailJob.js';
 import SosEvent from '../src/models/SosEvent.js';
 import { hashToken } from '../src/utils/tokens.js';
 
-/** FR-2, FR-3, FR-4, FR-10. */
-
-
 describe('Emergency SOS', () => {
   describe('Activation', () => {
     it('creates an alert and returns a tracking link', async () => {
@@ -20,12 +17,6 @@ describe('Emergency SOS', () => {
       expect(response.body.data.trackingUrl).toContain('/track/');
     });
 
-    /*
-     * A phone with location switched off, indoors with no fix, or that has just
-     * had the permission denied must still be able to raise the alarm. This
-     * used to 422, which meant the contacts of the person least able to help
-     * herself heard nothing at all.
-     */
     it('still raises the alert when there is no location', async () => {
       const { token } = await createUser();
       await addContact(token, { name: 'Mother', email: 'mother@example.com' });
@@ -54,10 +45,6 @@ describe('Emergency SOS', () => {
       expect(detail.body.data.sos.currentLocation).toMatchObject({ lat: 23.79, lng: 90.41 });
     });
 
-    /*
-     * Coordinates that were sent but are nonsense are still a hard error -
-     * quietly downgrading them to "no location" would mask a broken client.
-     */
     it('rejects coordinates outside the valid range', async () => {
       const { token } = await createUser();
 
@@ -110,7 +97,7 @@ describe('Emergency SOS', () => {
       expect(job.html).toContain('Ayesha Rahman');
       expect(job.html).toContain('O+');
       expect(job.html).toContain('Severe peanut allergy');
-      // The plain-text alternative must carry the same facts.
+
       expect(job.text).toContain('Severe peanut allergy');
     });
 
@@ -175,7 +162,7 @@ describe('Emergency SOS', () => {
         .send(offsetNorth(DHAKA, 100));
 
       expect(response.status).toBe(200);
-      // One point from activation plus the two updates.
+
       expect(response.body.data.trailPointCount).toBe(3);
     });
 
@@ -362,18 +349,6 @@ describe('Emergency SOS', () => {
       expect(response.body.data.recipients[0].email).toBe('mother@example.com');
     });
 
-    /*
-     * Regression. Fan-out used to finish by calling save() on the document it
-     * had been holding since activation. The live trail is written by separate
-     * requests that bump the document version, so as soon as the phone reported
-     * a position - which it does within seconds, by design - that save failed
-     * its version check and was swallowed by the background runner.
-     *
-     * Nothing looked broken: the emails still went out, because they are queued
-     * before the save. What vanished was the record of who had been told, which
-     * is what the history reads and, worse, what resolve() reads to decide who
-     * gets the all-clear.
-     */
     it('records who was notified even when the trail is written during fan-out', async () => {
       const { token } = await createUser();
       await addContact(token, { email: 'mother@example.com' });
@@ -382,7 +357,6 @@ describe('Emergency SOS', () => {
       const created = await auth(token).post('/api/sos').send(DHAKA);
       const sosId = created.body.data.sos.id;
 
-      // Exactly what the browser does the moment an alert starts.
       await Promise.all([
         auth(token).patch(`/api/sos/${sosId}/location`).send(offsetNorth(DHAKA, 30)),
         auth(token).patch(`/api/sos/${sosId}/location`).send(offsetNorth(DHAKA, 60)),
@@ -395,11 +369,6 @@ describe('Emergency SOS', () => {
       expect(stored.trail.length).toBeGreaterThanOrEqual(4);
     });
 
-    /*
-     * Regression. notifiedContacts entries were written as "queued" and never
-     * moved on, so an alert whose emails had all been delivered still reported
-     * "0 of 2 contacts reached" in the history for ever.
-     */
     it('moves a recipient from queued to sent once the mail goes out', async () => {
       const { token } = await createUser();
       await addContact(token, { email: 'mother@example.com' });
@@ -415,10 +384,6 @@ describe('Emergency SOS', () => {
       expect(history.body.data.events[0].contactsDelivered).toBe(1);
     });
 
-    /*
-     * Regression. The all-clear is addressed from notifiedContacts, so losing
-     * that list meant nobody was ever told the person was safe.
-     */
     it('emails the all-clear to everyone who was alerted', async () => {
       const { token } = await createUser();
       await addContact(token, { email: 'mother@example.com' });

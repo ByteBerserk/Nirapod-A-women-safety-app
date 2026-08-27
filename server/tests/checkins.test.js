@@ -6,9 +6,6 @@ import Notification from '../src/models/Notification.js';
 import * as checkInService from '../src/services/checkInService.js';
 import { CHECKIN_STATUS } from '../src/config/constants.js';
 
-/** FR-26: safety check-in. */
-
-
 function startPayload(overrides = {}) {
   return {
     label: 'Walking home from campus',
@@ -19,7 +16,6 @@ function startPayload(overrides = {}) {
   };
 }
 
-/** Drags a check-in's deadlines into the past so the scheduler sees it as due. */
 async function makeDue(id, { escalate = false } = {}) {
   const past = new Date(Date.now() - 60 * 1000);
   const update = { dueAt: past };
@@ -54,10 +50,6 @@ describe('Safety check-in (FR-26)', () => {
       expect(Math.round(gapMinutes)).toBe(4);
     });
 
-    /*
-     * A timer whose escalation would email nobody does nothing at all, and the
-     * moment to learn that is when it is set rather than when it expires.
-     */
     it('says so plainly when there are no contacts to alert', async () => {
       const { token } = await createUser();
 
@@ -146,10 +138,6 @@ describe('Safety check-in (FR-26)', () => {
       expect(new Date(stored.dueAt).getTime()).toBeGreaterThan(Date.now());
     });
 
-    /*
-     * The important half of extending: pushing the timer back must actually
-     * call the escalation off, not merely delay the question.
-     */
     it('an extended check-in no longer escalates', async () => {
       const { token } = await createUser();
       await addContact(token);
@@ -251,7 +239,6 @@ describe('Safety check-in (FR-26)', () => {
       expect(stored.status).toBe(CHECKIN_STATUS.ESCALATED);
       expect(stored.escalatedSos).toBeTruthy();
 
-      // The same alert the red button raises, not a lesser one.
       const sos = await SosEvent.findById(stored.escalatedSos);
       expect(sos).toBeTruthy();
       expect(String(sos.user)).toBe(String(user.id));
@@ -259,7 +246,6 @@ describe('Safety check-in (FR-26)', () => {
       expect(sos.trigger).toBe('timer');
       expect(sos.message).toMatch(/missed safety check-in/i);
 
-      // ...and the contacts were actually emailed.
       const alert = await MailJob.findOne({ kind: 'sos-alert', to: 'mother@example.com' });
       expect(alert).toBeTruthy();
     });
@@ -305,7 +291,7 @@ describe('Safety check-in (FR-26)', () => {
       const { token } = await createUser();
       await addContact(token);
       const started = await auth(token).post('/api/check-ins').send(startPayload());
-      await makeDue(started.body.data.checkIn.id); // due, but grace has not run out
+      await makeDue(started.body.data.checkIn.id);
 
       await checkInService.promptDue();
       const escalated = await checkInService.escalateOverdue();

@@ -6,7 +6,6 @@ import { CHECKIN_STATUS_VALUES, LIMITS } from '../config/constants.js';
 
 const router = express.Router();
 
-/** FR-26: safety check-in. Everything here is about the caller's own timer. */
 router.use(protect);
 
 router
@@ -52,7 +51,6 @@ router
     controller.startCheckIn
   );
 
-/* Before /:id, or "active" is read as an id. */
 router.get('/active', controller.getActiveCheckIn);
 
 router.get('/:id', validateObjectId(), controller.getCheckIn);

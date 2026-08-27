@@ -7,12 +7,6 @@ import { SOS_TRIGGERS } from '../config/constants.js';
 
 const router = express.Router();
 
-/**
- * FR-2, FR-3, FR-4, FR-10.
- *
- * The tracking route is public on purpose: an emergency contact opens it
- * straight from their email and has no account. The token is the credential.
- */
 router.get('/track/:token', controller.getTrackingByToken);
 
 router.use(protect);

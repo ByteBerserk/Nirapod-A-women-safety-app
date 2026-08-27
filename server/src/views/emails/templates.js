@@ -2,12 +2,6 @@ import { wrap, button, detailTable, calloutBox, paragraph, PALETTE } from './lay
 import { escapeHtml } from '../../utils/sanitize.js';
 import { directionsLink } from '../../utils/geo.js';
 
-/**
- * Every template returns { subject, html, text }. The plain-text alternative is
- * not decoration: some phones show it on the lock screen, and it is what a
- * screen reader falls back to (NFR-13).
- */
-
 const fmtTime = (date) =>
   new Date(date).toLocaleString('en-GB', {
     dateStyle: 'medium',
@@ -18,16 +12,6 @@ const fmtTime = (date) =>
 const coordText = (loc) =>
   loc ? `${Number(loc.lat).toFixed(6)}, ${Number(loc.lng).toFixed(6)}` : 'not available';
 
-/**
- * How much to trust the coordinates.
- *
- * A phone with a GPS lock is accurate to a few metres. A laptop, or a phone
- * indoors, is positioned from nearby wifi or the mobile network and can be a
- * kilometre or more out - but the coordinates look just as precise, and the
- * reverse-geocoded street name makes them look more authoritative still. Saying
- * so plainly is the difference between a contact going to the right street and
- * a contact trusting the wrong one.
- */
 function accuracyText(accuracy) {
   const metres = Number(accuracy);
   if (!Number.isFinite(metres) || metres <= 0) return 'Not reported by their device';
@@ -36,7 +20,6 @@ function accuracyText(accuracy) {
   return `Within about ${(metres / 1000).toFixed(1)} km - rough, treat as an area`;
 }
 
-/** A visible caution above the map link when the fix is too vague to walk to. */
 function accuracyWarning(accuracy) {
   const metres = Number(accuracy);
   if (!Number.isFinite(metres) || metres < 1000) return '';
@@ -50,29 +33,10 @@ function accuracyWarning(accuracy) {
   );
 }
 
-/* ------------------------------------------------------------------ FR-4 --- */
-
-/**
- * The one that matters. Everything a contact needs is above the fold: who they
- * are, where they are on a live map, and the medical details a responder asks
- * for.
- */
 function sosAlert({ contactName, user, location, address, message, trackingUrl, startedAt }) {
   const person = escapeHtml(user.name);
   const subject = `URGENT: ${user.name} has triggered an SOS alert`;
 
-  /*
-   * One map link, not two.
-   *
-   * This used to offer "Follow live location" and a separate "Open in
-   * OpenStreetMap", which read as a choice between two different things. It
-   * was not: the tracking page is itself an OpenStreetMap map, centred on
-   * their position, and it keeps moving as they do. The plain osm.org link was
-   * the same map frozen at the first fix, minus the trail, the medical details
-   * and the button to call them - strictly worse, and a coin flip which one a
-   * worried contact clicked. Directions stays, because navigating to someone
-   * is a genuinely different action from watching where they are.
-   */
   const locationBlock = location
     ? `${button(trackingUrl, 'Follow live location on the map', PALETTE.danger)}
        ${accuracyWarning(location.accuracy)}
@@ -190,8 +154,6 @@ function sosResolved({ contactName, user, startedAt, resolvedAt, durationMs, not
   };
 }
 
-/* ----------------------------------------------------------------- FR-17 --- */
-
 function groupSosAlert({ memberName, user, groupName, location, trackingUrl, startedAt }) {
   const body = `
     ${paragraph(`Hello ${escapeHtml(memberName || 'there')},`)}
@@ -224,8 +186,6 @@ function groupSosAlert({ memberName, user, groupName, location, trackingUrl, sta
   };
 }
 
-/* ----------------------------------------------------------------- FR-14 --- */
-
 function groupInvite({ inviteeName, inviterName, groupName, acceptUrl, expiresAt }) {
   const body = `
     ${paragraph(`Hello ${escapeHtml(inviteeName || 'there')},`)}
@@ -255,8 +215,6 @@ function groupInvite({ inviteeName, inviterName, groupName, acceptUrl, expiresAt
   };
 }
 
-/* ----------------------------------------------------------------- FR-20 --- */
-
 function safePlaceTransition({ contactName, user, placeLabel, event, occurredAt }) {
   const verb = event === 'enter' ? 'arrived at' : 'left';
 
@@ -283,8 +241,6 @@ function safePlaceTransition({ contactName, user, placeLabel, event, occurredAt 
     text: `${user.name} has ${verb} ${placeLabel} at ${fmtTime(occurredAt)}.`,
   };
 }
-
-/* ------------------------------------------------------------------ auth --- */
 
 function passwordReset({ name, resetUrl }) {
   const body = `
@@ -374,17 +330,6 @@ function feedbackAck({ name, subject: topic, type }) {
   };
 }
 
-
-/* ----------------------------------------------------------------- FR-26 --- */
-
-/**
- * "Your check-in is due - are you safe?"
- *
- * Sent to the person themselves, not their contacts. It exists because the
- * browser tab may well be closed by the time the timer runs out, and this is
- * their last chance to answer before everyone they trust gets an emergency
- * alert. The deadline is stated plainly for that reason.
- */
 function checkInDue({ name, label, escalateAt, graceMinutes }) {
   const safeLabel = escapeHtml(label);
   const plural = graceMinutes === 1 ? '' : 's';

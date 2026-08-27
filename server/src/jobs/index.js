@@ -6,14 +6,8 @@ import * as sosService from '../services/sosService.js';
 import * as checkInService from '../services/checkInService.js';
 import MailJob from '../models/MailJob.js';
 
-/**
- * Background work. node-cron rather than a hosted scheduler, because it is
- * free and runs inside the process we already have.
- */
-
 const tasks = [];
 
-/** Stops one tick's failure from taking the whole process down. */
 function guard(name, fn) {
   return async () => {
     try {
@@ -25,12 +19,9 @@ function guard(name, fn) {
 }
 
 function startJobs() {
-  // Tests drive these directly rather than waiting on a schedule.
+
   if (!env.cronEnabled) return;
 
-  // NFR-12: drain the outbound queue. Every minute is a good balance between
-  // responsiveness and not hammering a free SMTP relay. Note that an SOS also
-  // drains the queue immediately, so this is the safety net, not the main path.
   tasks.push(
     cron.schedule(
       '* * * * *',
@@ -43,7 +34,6 @@ function startJobs() {
     )
   );
 
-  // Release jobs a crashed process left claimed.
   tasks.push(
     cron.schedule(
       '*/5 * * * *',
@@ -56,12 +46,6 @@ function startJobs() {
     )
   );
 
-  /*
-   * FR-26. Every minute is the resolution of the whole feature: it is how
-   * closely the prompt and the escalation can track the deadline the user set,
-   * and a minute of slack on a five minute grace period is acceptable where an
-   * hour would not be.
-   */
   tasks.push(
     cron.schedule(
       '* * * * *',
@@ -74,7 +58,6 @@ function startJobs() {
     )
   );
 
-  // Close SOS events nobody ever resolved.
   tasks.push(cron.schedule('0 * * * *', guard('sos-expiry', () => sosService.expireStale())));
 
   logger.info(`Started ${tasks.length} scheduled job(s)`);

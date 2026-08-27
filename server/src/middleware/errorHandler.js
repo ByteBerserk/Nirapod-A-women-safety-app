@@ -5,14 +5,6 @@ import AppError from '../utils/AppError.js';
 import { AUDIT_ACTIONS } from '../config/constants.js';
 import * as auditService from '../services/auditService.js';
 
-/**
- * NFR-14. Every failure path ends here. The rules are:
- *   - an AppError is trusted and its message is shown to the user
- *   - a known library error (Mongoose, JWT, Multer) is translated into one
- *   - anything else becomes a generic 500 and the real detail goes to the log
- */
-
-/** "Cast to ObjectId failed" -> a sentence a person can read. */
 function handleCastError(error) {
   if (error.path === '_id') {
     return AppError.notFound('We could not find that item.', { code: 'INVALID_ID' });
@@ -22,17 +14,15 @@ function handleCastError(error) {
   });
 }
 
-/** Turns a Mongoose ValidationError into per-field messages the form can show. */
 function handleValidationError(error) {
   const details = {};
   for (const [field, issue] of Object.entries(error.errors || {})) {
-    // Nested paths arrive as "address.city"; the client keys forms the same way.
+
     details[field] = issue.message;
   }
   return AppError.validation(details);
 }
 
-/** E11000 - a unique index rejected the write. */
 function handleDuplicateKeyError(error) {
   const field = Object.keys(error.keyPattern || error.keyValue || {})[0] || 'value';
 
@@ -42,7 +32,6 @@ function handleDuplicateKeyError(error) {
     slug: 'A resource with a very similar title already exists.',
   };
 
-  // Compound indexes need their own wording.
   const keys = Object.keys(error.keyPattern || {});
   if (keys.includes('owner') && keys.includes('email')) {
     return AppError.conflict('That person is already one of your emergency contacts.', {
@@ -98,7 +87,6 @@ function normalise(error) {
     return AppError.unauthorized('Your session has expired.', { code: 'TOKEN_EXPIRED' });
   }
 
-  // Body parser: malformed JSON.
   if (error.type === 'entity.parse.failed') {
     return AppError.badRequest('The request body was not valid JSON.');
   }
@@ -106,7 +94,6 @@ function normalise(error) {
     return new AppError('That request was too large.', 413);
   }
 
-  // The database is unreachable. 503 tells the client it is worth retrying.
   if (error.name === 'MongooseServerSelectionError' || error.name === 'MongoNetworkError') {
     return new AppError(
       'We are having trouble reaching the database. Please try again in a moment.',
@@ -115,10 +102,9 @@ function normalise(error) {
     );
   }
 
-  return null; // genuinely unexpected
+  return null;
 }
 
-/* eslint-disable no-unused-vars */
 function errorHandler(err, req, res, next) {
   const known = normalise(err);
   const error =
@@ -129,12 +115,9 @@ function errorHandler(err, req, res, next) {
         : err.message || 'Unexpected error'
     );
 
-  // Only genuine surprises and 5xx responses are worth a stack trace.
   if (!known || error.statusCode >= 500) {
     logger.error(`${req.method} ${req.originalUrl} -> ${error.statusCode}`, err);
 
-    // Recording server errors is explicitly part of NFR-15. Loaded lazily to
-    // avoid a require cycle between the error handler and the models.
     if (error.statusCode >= 500) {
       try {
         auditService.recordAsync({
@@ -145,7 +128,7 @@ function errorHandler(err, req, res, next) {
           metadata: { path: req.originalUrl, method: req.method, name: err.name },
         });
       } catch {
-        /* never let audit logging mask the original error */
+
       }
     }
   } else {
@@ -164,7 +147,6 @@ function errorHandler(err, req, res, next) {
   res.status(error.statusCode).json(body);
 }
 
-/** 404 for anything the router did not match. */
 function notFoundHandler(req, res, next) {
   next(
     AppError.notFound(`No route matches ${req.method} ${req.originalUrl}.`, { code: 'NO_ROUTE' })

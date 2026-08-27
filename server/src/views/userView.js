@@ -1,12 +1,5 @@
 import { idOf } from './present.js';
-/**
- * The "V" of MVC on the API side. Controllers never hand a Mongoose document
- * straight to res.json(); they pass it through one of these so the decision
- * about who may see which field is made in exactly one place (NFR-5).
- */
 
-
-/** Everything the signed-in owner may see about themselves. */
 function self(user) {
   if (!user) return null;
 
@@ -46,10 +39,6 @@ function self(user) {
   };
 }
 
-/**
- * What another member sees: enough to recognise a person, nothing that helps
- * locate or identify them offline. No email, no phone, no medical data.
- */
 function publicProfile(user) {
   if (!user) return null;
   return {
@@ -61,11 +50,6 @@ function publicProfile(user) {
   };
 }
 
-/**
- * The author line on a report or comment. Anonymous posts collapse to a
- * placeholder here rather than in the controller, so it is impossible to leak
- * the identity by forgetting a check at one call site.
- */
 function author(user, isAnonymous = false) {
   if (isAnonymous) {
     return { id: null, name: 'Anonymous', username: null, avatar: '', isAnonymous: true };
@@ -76,7 +60,6 @@ function author(user, isAnonymous = false) {
   return { ...publicProfile(user), isAnonymous: false };
 }
 
-/** Fellow group member: public profile plus group-specific state. */
 function groupMember(member) {
   if (!member) return null;
   const user = member.user;
@@ -86,7 +69,7 @@ function groupMember(member) {
     groupRole: member.role,
     joinedAt: member.joinedAt,
     shareLocation: Boolean(member.shareLocation),
-    // Coordinates are only present when this member opted in - see groupView.
+
     lastLocation: member.shareLocation && member.lastLocation?.coordinates
       ? {
           lat: member.lastLocation.coordinates[1],
@@ -98,7 +81,6 @@ function groupMember(member) {
   };
 }
 
-/** The admin user-management table (FR-25). Includes moderation state. */
 function adminRow(user) {
   if (!user) return null;
   return {

@@ -2,11 +2,6 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import env from '../config/env.js';
 
-/**
- * Signs the short-lived access token. `tokenVersion` is copied from the user
- * document; bumping it on the user invalidates every token already issued,
- * which is how "log out everywhere" and suspension take effect immediately.
- */
 function signAccessToken(user) {
   return jwt.sign(
     { sub: String(user._id), role: user.role, tv: user.tokenVersion || 0 },
@@ -41,23 +36,14 @@ function verifyRefreshToken(token) {
   return payload;
 }
 
-/**
- * A URL-safe random string. Used for password reset tokens, SOS tracking links
- * and group invite codes.
- */
 function randomToken(bytes = 32) {
   return crypto.randomBytes(bytes).toString('base64url');
 }
 
-/**
- * We store only the hash of long-lived tokens, so a database leak does not hand
- * an attacker working reset links or live tracking URLs (NFR-4).
- */
 function hashToken(token) {
   return crypto.createHash('sha256').update(String(token)).digest('hex');
 }
 
-/** Constant-time compare that tolerates different lengths. */
 function safeCompare(a, b) {
   const bufA = Buffer.from(String(a));
   const bufB = Buffer.from(String(b));
@@ -65,7 +51,6 @@ function safeCompare(a, b) {
   return crypto.timingSafeEqual(bufA, bufB);
 }
 
-/** Converts "30d" / "12h" / "45m" / "90s" into milliseconds. */
 function durationToMs(duration) {
   const match = /^(\d+)\s*([smhdw])$/i.exec(String(duration).trim());
   if (!match) return 0;

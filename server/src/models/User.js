@@ -17,10 +17,10 @@ const notificationPrefsSchema = new mongoose.Schema(
 
 const privacyPrefsSchema = new mongoose.Schema(
   {
-    // FR-16 / NFR-5: sharing is opt-in, never assumed.
+
     shareLocationWithGroups: { type: Boolean, default: false },
     showProfileToGroupMembers: { type: Boolean, default: true },
-    // FR-20: let family see safe-place transitions.
+
     notifyContactsOnSafePlace: { type: Boolean, default: false },
   },
   { _id: false }
@@ -64,7 +64,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please choose a password.'],
       minlength: [8, 'Passwords must be at least 8 characters.'],
-      select: false, // never comes back from a query unless explicitly asked for
+      select: false,
     },
 
     phone: {
@@ -92,7 +92,6 @@ const userSchema = new mongoose.Schema(
       },
     },
 
-    // FR-1: emergency responders need these at a glance.
     bloodGroup: { type: String, enum: BLOOD_GROUPS, default: 'unknown' },
 
     medicalInfo: {
@@ -128,10 +127,6 @@ const userSchema = new mongoose.Schema(
     notificationPrefs: { type: notificationPrefsSchema, default: () => ({}) },
     privacyPrefs: { type: privacyPrefsSchema, default: () => ({}) },
 
-    /**
-     * Incremented whenever every existing session must die: password change,
-     * password reset, suspension, "sign out of all devices".
-     */
     tokenVersion: { type: Number, default: 0 },
 
     passwordChangedAt: { type: Date, default: null },
@@ -140,7 +135,7 @@ const userSchema = new mongoose.Schema(
 
     lastLoginAt: { type: Date, default: null },
     lastKnownLocation: {
-      coordinates: { type: [Number], default: undefined }, // [lng, lat]
+      coordinates: { type: [Number], default: undefined },
       updatedAt: { type: Date, default: null },
     },
 
@@ -154,10 +149,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-/*
- * Indexes. Unique constraints are declared here rather than with `unique: true`
- * on the path so the collation is explicit and the error message is ours.
- */
 userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ username: 1 }, { unique: true });
 userSchema.index({ role: 1, accountStatus: 1 });
@@ -166,7 +157,7 @@ userSchema.index({ name: 'text', username: 'text', email: 'text' });
 
 userSchema.virtual('isSuspended').get(function isSuspended() {
   if (this.accountStatus !== ACCOUNT_STATUS.SUSPENDED) return false;
-  // A suspension with no end date is indefinite.
+
   if (!this.suspension || !this.suspension.until) return true;
   return this.suspension.until.getTime() > Date.now();
 });
@@ -180,10 +171,8 @@ userSchema.pre('save', async function hashPassword(next) {
 
   this.password = await bcrypt.hash(this.password, env.bcryptRounds);
 
-  // Skip on first save so a brand new account is not treated as "password
-  // changed after the token was issued".
   if (!this.isNew) {
-    // A second in the past absorbs the clock skew between hashing and signing.
+
     this.passwordChangedAt = new Date(Date.now() - 1000);
     this.tokenVersion += 1;
   }
@@ -195,20 +184,15 @@ userSchema.methods.comparePassword = function comparePassword(candidate) {
   return bcrypt.compare(candidate, this.password);
 };
 
-/** True when the password changed after a JWT with this `iat` was issued. */
 userSchema.methods.passwordChangedAfter = function passwordChangedAfter(issuedAtSeconds) {
   if (!this.passwordChangedAt) return false;
   return Math.floor(this.passwordChangedAt.getTime() / 1000) > issuedAtSeconds;
 };
 
-/**
- * Creates a password reset token. The plain token is returned for the email;
- * only its hash is persisted.
- */
 userSchema.methods.createPasswordResetToken = function createPasswordResetToken() {
   const token = randomToken(32);
   this.passwordResetTokenHash = hashToken(token);
-  this.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+  this.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000);
   return token;
 };
 
@@ -217,7 +201,6 @@ userSchema.methods.clearPasswordReset = function clearPasswordReset() {
   this.passwordResetExpires = null;
 };
 
-/** The subset of the profile that goes into an SOS email (FR-4). */
 userSchema.methods.emergencySnapshot = function emergencySnapshot() {
   return {
     name: this.name,

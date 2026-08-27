@@ -1,8 +1,6 @@
 import * as userView from './userView.js';
 import { idOf, pointOf } from './present.js';
 
-
-/** Row in the SOS history list (FR-10). Trail is omitted - it is large. */
 function summary(sos) {
   if (!sos) return null;
 
@@ -39,7 +37,6 @@ function summary(sos) {
   };
 }
 
-/** Full detail for the owner, including the trail and per-contact delivery. */
 function detail(sos) {
   if (!sos) return null;
 
@@ -64,12 +61,6 @@ function detail(sos) {
   };
 }
 
-/**
- * What an emergency contact sees when they open the link from the email. They
- * are not signed in, so this is deliberately narrow: who needs help, the
- * medical details a responder would want, and where they are. Nothing else -
- * no email address, no other contacts, no report history.
- */
 function publicTracking(sos, user) {
   if (!sos) return null;
 
@@ -103,10 +94,6 @@ function publicTracking(sos, user) {
   };
 }
 
-/**
- * The banner shown to fellow group members while an SOS is running (FR-17).
- * They get the location and the person, not the medical record.
- */
 function groupAlert(sos, user) {
   if (!sos) return null;
   return {

@@ -12,9 +12,6 @@ import { getPagination, keywordFilter } from '../utils/query.js';
 import { normaliseText, normalisePhone, pick } from '../utils/sanitize.js';
 import { removeUploadedFiles, persistUpload } from '../middleware/upload.js';
 
-/** FR-1: view and update the personal profile. */
-
-/** Fields the owner is allowed to change. Role and status are not among them. */
 const EDITABLE = [
   'name',
   'phone',
@@ -55,8 +52,6 @@ export const updateProfile = asyncHandler(async (req, res) => {
     }
   }
 
-  // The username is changeable but must stay unique, so it is handled apart
-  // from the bulk assignment above.
   if (req.body.username !== undefined) {
     const username = String(req.body.username).trim().toLowerCase();
     if (username !== user.username) {
@@ -92,13 +87,10 @@ export const updateAvatar = asyncHandler(async (req, res) => {
 
   const previous = user.avatar;
 
-  // Whichever driver is active returns the URL the browser should use.
   const stored = await persistUpload(req.file);
   user.avatar = stored.url;
   await user.save({ validateBeforeSave: false });
 
-  // Delete the old picture so storage does not grow forever. Only avatars this
-  // application created are ever touched.
   if (previous && previous.startsWith('/uploads/avatars/')) {
     const oldPath = path.join(env.uploads.dir, 'avatars', path.basename(previous));
     fs.promises.unlink(oldPath).catch(() => {});
@@ -142,11 +134,6 @@ export const updatePreferences = asyncHandler(async (req, res) => {
   return ok(res, { user: userView.self(user) }, 'Your preferences have been saved.');
 });
 
-/**
- * Used when inviting somebody to a safety group. Returns public profiles only,
- * requires at least three characters, and is capped at ten results so it cannot
- * be walked to enumerate the user base (NFR-5).
- */
 export const searchUsers = asyncHandler(async (req, res) => {
   const term = String(req.query.q || '').trim();
   if (term.length < 3) {
@@ -168,11 +155,6 @@ export const getPublicProfile = asyncHandler(async (req, res) => {
   return ok(res, { user: userView.publicProfile(user) });
 });
 
-/**
- * Self-service deactivation. The account is flagged rather than deleted so that
- * incident reports and group history do not develop holes (NFR-10). Deletion of
- * personal data is an admin action with its own audit trail.
- */
 export const deactivateAccount = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id).select('+password');
   if (!user) throw AppError.notFound('Account not found.');
@@ -182,7 +164,7 @@ export const deactivateAccount = asyncHandler(async (req, res) => {
   }
 
   user.accountStatus = 'deactivated';
-  user.tokenVersion += 1; // kills every existing session
+  user.tokenVersion += 1;
   await user.save({ validateBeforeSave: false });
 
   auditService.recordAsync({
@@ -199,7 +181,6 @@ export const deactivateAccount = asyncHandler(async (req, res) => {
   return ok(res, null, 'Your account has been deactivated.');
 });
 
-/** FR-25 support: the admin user list. */
 export const listUsers = asyncHandler(async (req, res) => {
   const { page, limit, skip } = getPagination(req.query);
 

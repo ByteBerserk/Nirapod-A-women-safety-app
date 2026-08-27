@@ -1,12 +1,5 @@
 import { escapeHtml } from '../../utils/sanitize.js';
 
-/**
- * Email HTML is not web HTML. Gmail and Outlook strip <style> blocks, ignore
- * flexbox and drop external CSS, so everything here is inline styles on tables.
- * It looks dated on purpose - it is the only thing that renders the same in
- * every client.
- */
-
 const PALETTE = {
   ink: '#1f2430',
   muted: '#5b6472',
@@ -32,7 +25,6 @@ function button(href, label, colour = PALETTE.brand) {
     </table>`;
 }
 
-/** A label/value row. Used for the medical details block in SOS mail. */
 function detailRow(label, value) {
   if (value === null || value === undefined || value === '') return '';
   return `
@@ -68,15 +60,6 @@ function paragraph(text) {
                     line-height:1.6;color:${PALETTE.ink};">${text}</p>`;
 }
 
-/**
- * Wraps a body fragment in the outer shell.
- *
- * @param {object} options
- * @param {string} options.title       Shown in the coloured header bar.
- * @param {string} options.body        Pre-escaped HTML fragment.
- * @param {string} [options.accent]    Header colour.
- * @param {string} [options.preheader] The grey line inbox lists show after the subject.
- */
 function wrap({ title, body, accent = PALETTE.brand, preheader = '' }) {
   return `<!doctype html>
 <html lang="en">

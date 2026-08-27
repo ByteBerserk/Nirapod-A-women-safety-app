@@ -10,7 +10,6 @@ const router = express.Router();
 
 router.use(protect);
 
-/* FR-1 */
 router.get('/profile', controller.getProfile);
 
 router.patch(
@@ -36,11 +35,9 @@ router.post(
   controller.deactivateAccount
 );
 
-/* Used when inviting people to a safety group. */
 router.get('/search', controller.searchUsers);
 router.get('/:id', validateObjectId(), controller.getPublicProfile);
 
-/* FR-25 */
 router.get('/', restrictTo(ROLES.MODERATOR), controller.listUsers);
 
 export default router;

@@ -12,20 +12,14 @@ import { signAccessToken, signRefreshToken, verifyRefreshToken, hashToken, durat
 import { normaliseEmail, normaliseText } from '../utils/sanitize.js';
 import { runInBackground } from '../utils/background.js';
 
-/**
- * Accounts and sessions. The refresh token lives in an httpOnly cookie so
- * JavaScript on the page cannot read it; the short-lived access token is
- * returned in the body for the client to hold in memory (NFR-4).
- */
-
 const MAX_FAILED_LOGINS = 8;
 const LOCK_MINUTES = 15;
 
 function refreshCookieOptions() {
   return {
     httpOnly: true,
-    secure: env.isProd, // requires HTTPS in production
-    sameSite: env.isProd ? 'none' : 'lax', // 'none' so the SPA can sit on another origin
+    secure: env.isProd,
+    sameSite: env.isProd ? 'none' : 'lax',
     path: '/api/auth',
     maxAge: durationToMs(env.jwt.refreshExpiresIn) || 30 * 24 * 60 * 60 * 1000,
   };
@@ -38,15 +32,11 @@ function issueSession(res, user) {
   return { accessToken, refreshToken };
 }
 
-/* ---------------------------------------------------------------- register --- */
-
 export const register = asyncHandler(async (req, res) => {
   const name = normaliseText(req.body.name);
   const email = normaliseEmail(req.body.email);
   const username = String(req.body.username || '').trim().toLowerCase();
 
-  // Checked up front so the user gets a field-level message rather than a
-  // generic duplicate-key error, and so we can point at the right input.
   const [emailTaken, usernameTaken] = await Promise.all([
     User.exists({ email }),
     User.exists({ username }),
@@ -78,7 +68,6 @@ export const register = asyncHandler(async (req, res) => {
     message: `New account created: ${user.username}`,
   });
 
-  // Queued rather than awaited - a slow SMTP server must not slow down signup.
   mailService
     .enqueue({
       kind: 'welcome',
@@ -97,19 +86,14 @@ export const register = asyncHandler(async (req, res) => {
   );
 });
 
-/* ------------------------------------------------------------------- login --- */
-
 export const login = asyncHandler(async (req, res) => {
   const identifier = String(req.body.identifier || req.body.email || '').trim().toLowerCase();
   const password = String(req.body.password || '');
 
-  // Sign in with either an email address or a username.
   const user = await User.findOne(
     identifier.includes('@') ? { email: identifier } : { username: identifier }
   ).select('+password +failedLoginAttempts +lockedUntil');
 
-  // One message for both "no such user" and "wrong password" so the endpoint
-  // cannot be used to find out which addresses are registered.
   const genericFailure = AppError.unauthorized(
     'That email or password is not correct.',
     { code: 'BAD_CREDENTIALS' }
@@ -187,8 +171,6 @@ export const login = asyncHandler(async (req, res) => {
   return ok(res, { user: userView.self(user), accessToken }, 'Signed in successfully.');
 });
 
-/* ----------------------------------------------------------------- refresh --- */
-
 export const refresh = asyncHandler(async (req, res) => {
   const token = req.cookies?.refreshToken || req.body?.refreshToken;
   if (!token) throw AppError.unauthorized('No session to refresh.', { code: 'NO_REFRESH_TOKEN' });
@@ -214,13 +196,9 @@ export const refresh = asyncHandler(async (req, res) => {
     throw AppError.forbidden('This account is not active.');
   }
 
-  // The refresh cookie is reissued too, so an active user is never logged out
-  // by the refresh token quietly ageing past its expiry.
   const { accessToken } = issueSession(res, user);
   return ok(res, { user: userView.self(user), accessToken });
 });
-
-/* ------------------------------------------------------------------ logout --- */
 
 export const logout = asyncHandler(async (req, res) => {
   res.clearCookie('refreshToken', { ...refreshCookieOptions(), maxAge: undefined });
@@ -231,7 +209,6 @@ export const logout = asyncHandler(async (req, res) => {
   return ok(res, null, 'Signed out.');
 });
 
-/** Invalidates every session on every device by bumping tokenVersion. */
 export const logoutAll = asyncHandler(async (req, res) => {
   await User.updateOne({ _id: req.user._id }, { $inc: { tokenVersion: 1 } });
   res.clearCookie('refreshToken', { ...refreshCookieOptions(), maxAge: undefined });
@@ -244,18 +221,12 @@ export const logoutAll = asyncHandler(async (req, res) => {
   return ok(res, null, 'You have been signed out on every device.');
 });
 
-/* ---------------------------------------------------------------- identity --- */
-
 export const me = asyncHandler(async (req, res) => ok(res, { user: userView.self(req.user) }));
-
-/* ---------------------------------------------------------- password reset --- */
 
 export const forgotPassword = asyncHandler(async (req, res) => {
   const email = normaliseEmail(req.body.email);
   const user = await User.findOne({ email });
 
-  // Always the same reply. Otherwise this endpoint tells an attacker which
-  // addresses have accounts.
   const genericReply = () =>
     ok(res, null, 'If that address has an account, a reset link is on its way.');
 
@@ -275,11 +246,10 @@ export const forgotPassword = asyncHandler(async (req, res) => {
       relatedUser: user._id,
       ...templates.passwordReset({ name: user.name, resetUrl }),
     });
-    // Send now rather than waiting up to a minute for the cron tick.
+
     runInBackground(mailService.processQueue(3), 'auth mail delivery');
   } catch (error) {
-    // If we cannot even queue it, throw the token away so a stale one is not
-    // left sitting on the account.
+
     user.clearPasswordReset();
     await user.save({ validateBeforeSave: false });
     throw AppError.internal('We could not send the reset email. Please try again shortly.');
@@ -309,7 +279,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
     });
   }
 
-  user.password = password; // the pre-save hook hashes it and bumps tokenVersion
+  user.password = password;
   user.clearPasswordReset();
   user.failedLoginAttempts = 0;
   user.lockedUntil = null;
@@ -323,8 +293,6 @@ export const resetPassword = asyncHandler(async (req, res) => {
     message: 'Password reset completed',
   });
 
-  // Deliberately not signed in automatically: whoever reset it should prove
-  // they know the new password.
   res.clearCookie('refreshToken', { ...refreshCookieOptions(), maxAge: undefined });
   return ok(res, null, 'Your password has been changed. Please sign in with it.');
 });
@@ -345,8 +313,6 @@ export const changePassword = asyncHandler(async (req, res) => {
   user.password = newPassword;
   await user.save();
 
-  // tokenVersion changed, so the caller's own token is now dead too - hand
-  // them a fresh session rather than logging them out of the tab they are in.
   const { accessToken } = issueSession(res, user);
 
   auditService.recordAsync({

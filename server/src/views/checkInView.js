@@ -1,12 +1,6 @@
 import { CHECKIN_STATUS } from '../config/constants.js';
 import { idOf, pointOf } from './present.js';
 
-/** FR-26. What the owner is allowed to see about their own check-in. */
-
-
-/**
- * @param {object} doc a SafetyCheckIn
- */
 function detail(doc) {
   if (!doc) return null;
 
@@ -25,11 +19,6 @@ function detail(doc) {
     escalateAt,
     graceMinutes: doc.graceMinutes,
 
-    /*
-     * Sent alongside the timestamps so a clock that is a few minutes out does
-     * not show a countdown that disagrees with the server - the server is the
-     * one that decides when this escalates.
-     */
     secondsUntilDue: open && dueAt ? Math.max(0, Math.round((dueAt - Date.now()) / 1000)) : null,
     secondsUntilEscalation:
       open && escalateAt ? Math.max(0, Math.round((escalateAt - Date.now()) / 1000)) : null,
@@ -46,7 +35,6 @@ function detail(doc) {
   };
 }
 
-/** Row in the history list. Same shape, minus the live countdown. */
 function summary(doc) {
   const full = detail(doc);
   if (!full) return null;

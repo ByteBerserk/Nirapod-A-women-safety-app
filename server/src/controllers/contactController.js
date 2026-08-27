@@ -7,8 +7,6 @@ import * as auditService from '../services/auditService.js';
 import { AUDIT_ACTIONS, LIMITS } from '../config/constants.js';
 import { normaliseText, normaliseEmail, normalisePhone } from '../utils/sanitize.js';
 
-/** FR-5: add and remove the trusted people who receive SOS mail. */
-
 export const listContacts = asyncHandler(async (req, res) => {
   const contacts = await EmergencyContact.find({ owner: req.user._id })
     .sort({ priority: 1, createdAt: 1 })
@@ -16,7 +14,7 @@ export const listContacts = asyncHandler(async (req, res) => {
 
   return ok(res, {
     contacts: contacts.map(commonView.contact),
-    // The dashboard uses this to nag when the SOS button has nobody to alert.
+
     activeCount: contacts.filter((c) => c.isActive).length,
     limit: LIMITS.MAX_EMERGENCY_CONTACTS,
   });
@@ -34,7 +32,6 @@ export const createContact = asyncHandler(async (req, res) => {
 
   const email = normaliseEmail(req.body.email);
 
-  // Alerting yourself helps nobody, and it would double every SOS email.
   if (email === req.user.email) {
     throw AppError.validation({
       email: 'This is your own address. Add someone who can come and help you.',
@@ -62,8 +59,7 @@ export const createContact = asyncHandler(async (req, res) => {
 });
 
 export const updateContact = asyncHandler(async (req, res) => {
-  // Scoping the query by owner is what stops one user editing another's
-  // contacts, rather than fetching first and comparing afterwards.
+
   const contact = await EmergencyContact.findOne({
     _id: req.params.id,
     owner: req.user._id,

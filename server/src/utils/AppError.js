@@ -1,16 +1,5 @@
-/**
- * An error we raised on purpose, as opposed to something that blew up. The
- * error handler trusts the message of an AppError and shows it to the user;
- * anything else gets a generic message so internals never leak (NFR-4/14).
- */
 class AppError extends Error {
-  /**
-   * @param {string} message  Safe to show to the end user.
-   * @param {number} statusCode
-   * @param {object} [options]
-   * @param {string} [options.code]    Stable machine-readable code for the client.
-   * @param {object} [options.details] Field level errors, e.g. { email: 'Already in use' }.
-   */
+
   constructor(message, statusCode = 400, options = {}) {
     super(message);
     this.name = 'AppError';

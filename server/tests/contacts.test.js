@@ -3,12 +3,6 @@ import EmergencyContact from '../src/models/EmergencyContact.js';
 import { LIMITS } from '../src/config/constants.js';
 import { request as req, app } from './helpers.js';
 
-/**
- * FR-5. The validation and cross-user isolation rules are covered alongside
- * the alert path in sos.test.js; this suite covers the rest of the lifecycle -
- * listing order, editing, deactivating and the cap.
- */
-
 function contactPayload(overrides = {}) {
   return {
     name: 'Ammu',
@@ -71,7 +65,7 @@ describe('Emergency contacts', () => {
       const { token } = await createUser();
 
       for (let i = 0; i < LIMITS.MAX_EMERGENCY_CONTACTS; i += 1) {
-        /* eslint-disable no-await-in-loop */
+
         await addContact(token, { email: `contact${i}@example.com`, name: `Contact ${i}` });
       }
 

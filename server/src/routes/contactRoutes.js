@@ -7,7 +7,6 @@ const router = express.Router();
 
 router.use(protect);
 
-/* FR-5 */
 router
   .route('/')
   .get(controller.listContacts)

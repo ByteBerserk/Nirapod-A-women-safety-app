@@ -16,25 +16,8 @@ import { getPagination, dateRangeFilter } from '../utils/query.js';
 import { SOS_STATUS, AUDIT_ACTIONS, MAIL_STATUS } from '../config/constants.js';
 import { runInBackground } from '../utils/background.js';
 
-/** FR-2, FR-3, FR-4, FR-10. */
-
-/* -------------------------------------------------------------- activate --- */
-
 export const activateSos = asyncHandler(async (req, res) => {
-  /*
-   * A missing location no longer blocks the alert.
-   *
-   * Refusing without coordinates meant that a phone indoors, with location
-   * switched off, or that had just had the permission denied could not raise
-   * the alarm at all - the contacts heard nothing. An alert that says "she
-   * needs help, we could not read her location, call her" is far better than
-   * silence, and the alert email has always had a branch for exactly that.
-   * The trail starts as soon as the device manages a fix.
-   *
-   * Coordinates that were *sent* but are nonsense are a different matter, and
-   * are still rejected: silently treating lat=200 as "no location" would hide a
-   * broken client on the one call where hiding a fault is least acceptable.
-   */
+
   const source = req.body.location || req.body;
   const sentCoordinates =
     (source?.lat ?? source?.latitude) !== undefined ||
@@ -50,8 +33,6 @@ export const activateSos = asyncHandler(async (req, res) => {
     });
   }
 
-  // The full document is needed here - `protect` selects a slim projection and
-  // the alert email carries the blood group and medical notes.
   const user = await User.findById(req.user._id);
   if (!user) throw AppError.notFound('Account not found.');
 
@@ -80,9 +61,6 @@ export const activateSos = asyncHandler(async (req, res) => {
     return ok(res, payload, 'An alert is already running. Your location has been updated.');
   }
 
-  // An honest message rather than a reassuring lie: if nobody is on the list,
-  // nobody was emailed, and the user needs to know that right now. The same
-  // applies to a missing fix - the alert went out, but without a place on it.
   const withoutLocation = location
     ? ''
     : ' Your location could not be read, so the alert asks them to call you.';
@@ -93,8 +71,6 @@ export const activateSos = asyncHandler(async (req, res) => {
 
   return created(res, payload, message);
 });
-
-/* ------------------------------------------------------------ live trail --- */
 
 export const updateLocation = asyncHandler(async (req, res) => {
   const location = parseCoordinates(req.body.location || req.body);
@@ -112,12 +88,8 @@ export const updateLocation = asyncHandler(async (req, res) => {
     recordedAt: req.body.recordedAt,
   });
 
-  // No body: this fires every few seconds and the client already knows where
-  // it is. Returning the trail each time would waste the user's data.
   return ok(res, { trailPointCount: sos.trail.length });
 });
-
-/* --------------------------------------------------------------- resolve --- */
 
 export const resolveSos = asyncHandler(async (req, res) => {
   const sos = await SosEvent.findOne({ _id: req.params.id, user: req.user._id });
@@ -140,14 +112,11 @@ export const resolveSos = asyncHandler(async (req, res) => {
   );
 });
 
-/* ------------------------------------------------------------ current/list --- */
-
 export const getActiveSos = asyncHandler(async (req, res) => {
   const sos = await SosEvent.findActiveForUser(req.user._id);
   return ok(res, { sos: sos ? sosView.detail(sos) : null });
 });
 
-/** FR-10: the SOS history, with date and duration. */
 export const listSosHistory = asyncHandler(async (req, res) => {
   const { page, limit, skip } = getPagination(req.query);
 
@@ -162,7 +131,7 @@ export const listSosHistory = asyncHandler(async (req, res) => {
       .sort('-createdAt')
       .skip(skip)
       .limit(limit)
-      // The trail can hold thousands of points; a list view never needs it.
+
       .select('-trail')
       .lean(),
     SosEvent.countDocuments(filter),
@@ -182,12 +151,6 @@ export const getSosDetail = asyncHandler(async (req, res) => {
   return ok(res, { sos: sosView.detail(sos) });
 });
 
-/* ------------------------------------------------- public tracking (FR-2) --- */
-
-/**
- * Opened by an emergency contact straight from their email. No account, no
- * sign-in - just the token. The presenter decides what they may see.
- */
 export const getTrackingByToken = asyncHandler(async (req, res) => {
   const sos = await SosEvent.findOne({
     trackingTokenHash: hashToken(req.params.token),
@@ -201,17 +164,14 @@ export const getTrackingByToken = asyncHandler(async (req, res) => {
     );
   }
 
-  // Counted with an atomic update so two contacts opening it at once cannot
-  // overwrite each other's increment.
   SosEvent.updateOne({ _id: sos._id }, { $inc: { trackingViews: 1 } }).catch(() => {});
 
   return ok(res, {
     tracking: sosView.publicTracking(sos, sos.user),
-    sosId: String(sos._id), // the socket needs this to join the room
+    sosId: String(sos._id),
   });
 });
 
-/** Lets the user kill a live tracking link without closing the alert. */
 export const revokeTracking = asyncHandler(async (req, res) => {
   const sos = await SosEvent.findOne({ _id: req.params.id, user: req.user._id });
   if (!sos) throw AppError.notFound('That alert was not found.');
@@ -222,12 +182,6 @@ export const revokeTracking = asyncHandler(async (req, res) => {
   return ok(res, null, 'The tracking link has been switched off.');
 });
 
-/* -------------------------------------------------- NFR-12: resend/status --- */
-
-/**
- * Delivery status per contact, so the UI can say "3 of 4 delivered" rather than
- * leaving the user to hope.
- */
 export const getAlertStatus = asyncHandler(async (req, res) => {
   const sos = await SosEvent.findOne({ _id: req.params.id, user: req.user._id }).lean();
   if (!sos) throw AppError.notFound('That alert was not found.');
@@ -257,7 +211,6 @@ export const getAlertStatus = asyncHandler(async (req, res) => {
   });
 });
 
-/** Manual retry for alerts the queue gave up on (NFR-12). */
 export const resendAlerts = asyncHandler(async (req, res) => {
   const sos = await SosEvent.findOne({ _id: req.params.id, user: req.user._id });
   if (!sos) throw AppError.notFound('That alert was not found.');

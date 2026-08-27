@@ -49,7 +49,6 @@ router.post(
   controller.resetPassword
 );
 
-// Everything below requires a session.
 router.use(protect);
 
 router.get('/me', controller.me);

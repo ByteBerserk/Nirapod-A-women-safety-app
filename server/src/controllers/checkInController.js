@@ -10,19 +10,11 @@ import { getPagination } from '../utils/query.js';
 import { normaliseText } from '../utils/sanitize.js';
 import { LIMITS } from '../config/constants.js';
 
-/** FR-26: safety check-in. */
-
-/**
- * Loads a check-in the caller owns. Scoped in the query rather than fetched and
- * compared, so there is no window where somebody else's document is in hand.
- */
 async function ownedCheckIn(req) {
   const checkIn = await SafetyCheckIn.findOne({ _id: req.params.id, user: req.user._id });
   if (!checkIn) throw AppError.notFound('That check-in was not found.');
   return checkIn;
 }
-
-/* ------------------------------------------------------------------ start --- */
 
 export const startCheckIn = asyncHandler(async (req, res) => {
   const minutes = Number(req.body.minutes);
@@ -38,11 +30,6 @@ export const startCheckIn = asyncHandler(async (req, res) => {
     req,
   });
 
-  /*
-   * Said plainly at the point of setting it. A check-in whose escalation would
-   * email nobody is a timer that does nothing, and the moment to find that out
-   * is now rather than when it expires.
-   */
   const contactCount = await EmergencyContact.countDocuments({
     owner: req.user._id,
     isActive: true,
@@ -57,9 +44,6 @@ export const startCheckIn = asyncHandler(async (req, res) => {
   return created(res, { checkIn: checkInView.detail(checkIn), contactCount }, message);
 });
 
-/* ---------------------------------------------------------------- reading --- */
-
-/** The one that is running, if there is one. Drives the countdown on every screen. */
 export const getActiveCheckIn = asyncHandler(async (req, res) => {
   const checkIn = await SafetyCheckIn.findOpenForUser(req.user._id);
   return ok(res, { checkIn: checkIn ? checkInView.detail(checkIn) : null });
@@ -88,8 +72,6 @@ export const getCheckIn = asyncHandler(async (req, res) => {
   const checkIn = await ownedCheckIn(req);
   return ok(res, { checkIn: checkInView.detail(checkIn) });
 });
-
-/* -------------------------------------------------------------- responses --- */
 
 export const confirmSafe = asyncHandler(async (req, res) => {
   const checkIn = await ownedCheckIn(req);
