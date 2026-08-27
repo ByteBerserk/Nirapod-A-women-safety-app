@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Nirapod Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/dashboard/dashboard.css" />
+    <link rel="stylesheet" href="/emergency/emergency.css" />
+  </head>
+  <body>
+    <div class="dashboard-shell">
+      <aside class="dashboard-sidebar">
+        <div class="sidebar-brand">Nirapod</div>
+        <nav class="sidebar-nav">
+          <button class="sidebar-link active" data-page="home">Home</button>
+          <button class="sidebar-link" data-page="manage">Manage User</button>
+          <button class="sidebar-link" data-page="emergency">Emergency Contacts</button>
+          <button class="sidebar-link" data-page="community">Community</button>
+        </nav>
+        <div class="sidebar-footer">
+          <button id="logoutBtn" class="logout-btn">Sign Out</button>
+        </div>
+      </aside>
+
+      <main class="dashboard-content">
+        <header class="dashboard-header">
+          <div>
+            <h1 id="pageTitle">Home</h1>
+            <p id="pageDescription">Your secure member home page with fast access to profile actions.</p>
+          </div>
+        </header>
+
+        <section id="homeSection" class="home-section">
+          <div class="home-card welcome-card">
+            <div class="badge">Welcome back</div>
+            <h2>
+              Hello, <span id="welcomeName"></span>
+            </h2>
+            <p>Stay safe, keep your profile updated, and access your account tools from here.</p>
+            <div class="home-actions">
+              <button class="submit-btn" id="goToManageBtn">Manage Your Profile</button>
+            </div>
+          </div>
+
+          <div class="stat-grid">
+            <article class="stat-card">
+              <span class="stat-label">Alerts</span>
+              <strong>0</strong>
+              <p>No active safety alerts at the moment.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="emergencySection" class="manage-section hidden">
+          <div class="emergency-panel">
+            <div class="emergency-header">
+              <h2>Emergency Contacts</h2>
+              <div class="emergency-header-actions">
+                <button id="addLockBtn" class="secondary-btn lock-btn" type="button">🔓 Add Unlocked</button>
+                <button id="addContactBtn" class="submit-btn">Add Contact</button>
+              </div>
+            </div>
+
+            <div id="addContactModal" class="modal hidden">
+              <div class="modal-content small">
+                <h2>Add Emergency Contact</h2>
+                <form id="addContactForm">
+                  <label>
+                    Name
+                    <input id="contactName" name="name" required />
+                  </label>
+                  <label>
+                    Phone
+                    <input id="contactPhone" name="phone" required />
+                  </label>
+                  <label>
+                    Email (Gmail only)
+                    <input id="contactEmail" name="email" required />
+                  </label>
+                  <div class="modal-actions">
+                    <button type="button" id="cancelAddContact" class="secondary-btn">Cancel</button>
+                    <button type="submit" class="submit-btn">Add</button>
+                  </div>
+                  <p id="contactFormMessage" class="form-message"></p>
+                </form>
+              </div>
+            </div>
+
+            <div id="contactsList" class="contacts-list"></div>
+          </div>
+        </section>
+
+        <section id="manageSection" class="manage-section hidden">
+          <div class="profile-panel">
+            <div class="profile-summary profile-summary-manage">
+              <div class="profile-photo-wrapper profile-photo-wrapper-manage">
+                <img id="profileAvatar" alt="Profile photo" />
+                <div class="photo-overlay">
+                  <button id="changePhotoBtn" class="photo-btn">Change Photo</button>
+                  <input id="profilePhotoInput" type="file" accept="image/*" hidden />
+                </div>
+              </div>
+              <div>
+                <h2 id="profileName"></h2>
+                <p id="profileEmail"></p>
+                <p id="profilePhone"></p>
+              </div>
+            </div>
+
+            <div class="profile-grid">
+              <article class="profile-card">
+                <div class="card-header">
+                  <h3>Full Name</h3>
+                  <button class="update-field-btn" data-field="fullName">Update</button>
+                </div>
+                <p id="profileFullName"></p>
+              </article>
+
+              <article class="profile-card">
+                <div class="card-header">
+                  <h3>Email</h3>
+                  <button class="update-field-btn" data-field="email">Update</button>
+                </div>
+                <p id="profileEmailField"></p>
+              </article>
+
+              <article class="profile-card">
+                <div class="card-header">
+                  <h3>Username</h3>
+                  <button class="update-field-btn" data-field="username">Update</button>
+                </div>
+                <p id="profileUsername"></p>
+              </article>
+
+              <article class="profile-card">
+                <div class="card-header">
+                  <h3>Phone</h3>
+                  <button class="update-field-btn" data-field="phone">Update</button>
+                </div>
+                <p id="profilePhoneField"></p>
+              </article>
+
+              <article class="profile-card">
+                <div class="card-header">
+                  <h3>Blood Group</h3>
+                  <button class="update-field-btn" data-field="bloodGroup">Update</button>
+                </div>
+                <p id="profileBloodGroup"></p>
+              </article>
+
+              <article class="profile-card">
+                <div class="card-header">
+                  <h3>Gender</h3>
+                  <button class="update-field-btn" data-field="gender">Update</button>
+                </div>
+                <p id="profileGender"></p>
+              </article>
+
+              <article class="profile-card">
+                <div class="card-header">
+                  <h3>Job</h3>
+                  <button class="update-field-btn" data-field="job">Update</button>
+                </div>
+                <p id="profileJob"></p>
+              </article>
+
+              <article class="profile-card full-span">
+                <div class="card-header">
+                  <h3>Medical Info</h3>
+                  <button class="update-field-btn" data-field="medicalInfo">Update</button>
+                </div>
+                <p id="profileMedicalInfo"></p>
+              </article>
+
+              <article class="profile-card full-span">
+                <div class="card-header">
+                  <h3>Address</h3>
+                  <button class="update-field-btn" data-field="address">Update</button>
+                </div>
+                <p id="profileAddress"></p>
+              </article>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="updateModal" class="modal hidden">
+      <div class="modal-content">
+        <h2 id="modalTitle">Update Field</h2>
+        <form id="updateForm">
+          <label id="modalLabel">
+            <span id="modalFieldLabel"></span>
+            <div class="modal-field-wrapper">
+              <input id="modalInput" name="value" required />
+              <select id="modalSelect" name="value" class="hidden"></select>
+            </div>
+          </label>
+          <div class="modal-actions">
+            <button type="button" id="cancelBtn" class="secondary-btn">Cancel</button>
+            <button type="submit" class="submit-btn">Save</button>
+          </div>
+          <p id="modalMessage" class="form-message"></p>
+        </form>
+      </div>
+    </div>
+
+    <script type="module" src="/dashboard/dashboard.js"></script>
+    <script type="module" src="/emergency/emergency.js"></script>
+  </body>
+</html>

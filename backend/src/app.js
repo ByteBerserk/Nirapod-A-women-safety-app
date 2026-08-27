@@ -1,0 +1,58 @@
+import express from "express";
+import cors from "cors";
+import path from "path";
+import feedbackRoutes from "./routes/feedbackRoutes.js";
+import safetyResourceRoutes from "./routes/safetyResourceRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
+import emergencyRoutes from "./routes/emergencyRoutes.js";
+import communityReportRoutes from "./routes/communityReportRoutes.js";
+
+const app = express();
+
+app.use(cors());
+app.use(express.json({ limit: "25mb" }));
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
+// Serve frontend static files from the sibling `frontend` folder so the app
+// can be opened from the backend server (no separate static server needed).
+const frontendDir = path.join(process.cwd(), "..", "frontend");
+app.use(express.static(frontendDir));
+app.get(["/", "/index.html"], (req, res) => {
+	res.sendFile(path.join(frontendDir, "index.html"));
+});
+
+app.get("/dashboard.html", (req, res) => {
+	res.sendFile(path.join(frontendDir, "dashboard.html"));
+});
+
+app.get(["/dashboard", "/dashboard/dashboard.html"], (req, res) => {
+	res.redirect(301, "/dashboard.html");
+});
+
+app.get("/health", (req, res) => {
+	res.json({ status: "ok" });
+});
+
+app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/feedback", feedbackRoutes);
+app.use("/api/safety-resources", safetyResourceRoutes);
+app.use("/api/emergency", emergencyRoutes);
+app.use('/api/community-reports', communityReportRoutes);
+app.use((error, req, res, next) => {
+	if (error.type === "entity.too.large" || error.status === 413) {
+		return res.status(413).json({
+			message: "Payload too large. Please upload a smaller profile picture."
+		});
+	}
+
+	const statusCode = error.statusCode || 500;
+	const message = error.message || "Internal Server Error";
+
+	res.status(statusCode).json({
+		message
+	});
+});
+
+export default app;
